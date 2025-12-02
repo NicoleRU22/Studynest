@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import Subjects from "./pages/dashboard/Subjects";
+import Notes from "./pages/dashboard/Notes";
 import Tasks from "./pages/dashboard/Tasks";
 import Projects from "./pages/dashboard/Projects";
 import CalendarPage from "./pages/dashboard/Calendar";
@@ -38,6 +39,7 @@ const App = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<Subjects />} />
+              <Route path="notes" element={<Notes />} />
               <Route path="tasks" element={<Tasks />} />
               <Route path="projects" element={<Projects />} />
               <Route path="calendar" element={<CalendarPage />} />

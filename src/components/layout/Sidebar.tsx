@@ -16,11 +16,13 @@ import {
   X,
   Sparkles,
   User,
+  FileText,
 } from 'lucide-react';
 import { useState } from 'react';
 
 const navItems = [
   { to: '/dashboard', icon: BookOpen, label: 'Mis Materias' },
+  { to: '/dashboard/notes', icon: FileText, label: 'Notas' },
   { to: '/dashboard/tasks', icon: CheckSquare, label: 'Pendientes' },
   { to: '/dashboard/projects', icon: FolderKanban, label: 'Proyectos' },
   { to: '/dashboard/calendar', icon: Calendar, label: 'Calendario' },

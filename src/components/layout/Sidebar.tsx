@@ -16,6 +16,7 @@ import {
   X,
   User,
   FileText,
+  Award,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -25,6 +26,7 @@ const navItems = [
   { to: '/dashboard/tasks', icon: CheckSquare, label: 'Pendientes' },
   { to: '/dashboard/projects', icon: FolderKanban, label: 'Proyectos' },
   { to: '/dashboard/calendar', icon: Calendar, label: 'Calendario' },
+  { to: '/dashboard/grades', icon: Award, label: 'Calificaciones' },
   { to: '/dashboard/wellbeing', icon: Leaf, label: 'Mi Rincón' },
 ];
 

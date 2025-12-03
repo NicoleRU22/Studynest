@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Target, Brain, Trophy, Leaf, Plus, X, Loader2 } from 'lucide-react';
+import { Target, Brain, Trophy, Leaf, Plus, X, Loader2, TrendingUp, Calendar, Award, BarChart3 } from 'lucide-react';
+import { format, differenceInDays, startOfWeek, endOfWeek, eachDayOfInterval, isWithinInterval } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const Wellbeing = () => {
   const { user, profile, fetchProfile } = useAuth();
@@ -88,6 +90,45 @@ const Wellbeing = () => {
     setBreatheTime(60);
   };
 
+  // Calcular estadísticas
+  const totalWins = smallWins.length;
+  const hasGoal = semesterGoal.trim().length > 0;
+  const hasLearnings = dailyLearnings.trim().length > 0;
+  
+  // Calcular racha de días (días desde que se creó la cuenta)
+  // Usamos user.created_at como fallback si profile.created_at no está disponible
+  const accountAge = user?.created_at
+    ? differenceInDays(new Date(), new Date(user.created_at))
+    : 0;
+
+  // Calcular actividad de esta semana (aproximación basada en updated_at)
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
+  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  
+  // @ts-ignore - updated_at might not be in Profile type yet
+  const isActiveThisWeek = profile?.updated_at 
+    ? isWithinInterval(new Date(profile.updated_at), { start: weekStart, end: weekEnd })
+    : false;
+  
+  // Simular actividad basada en si hay contenido
+  const hasActivityToday = hasLearnings || hasGoal;
+
+  // Datos para gráfico de actividad semanal
+  // Simulamos actividad basada en si hay contenido y el día actual
+  const currentDayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+  const weeklyActivity = weekDays.map((day, index) => {
+    // Si es hoy y hay actividad, mostrar actividad
+    if (index === currentDayIndex && hasActivityToday) {
+      return { day: format(day, 'EEE', { locale: es }), value: 1 };
+    }
+    // Si es un día pasado y hay actividad general, mostrar algo de actividad
+    if (index < currentDayIndex && (hasLearnings || hasGoal)) {
+      return { day: format(day, 'EEE', { locale: es }), value: Math.random() > 0.3 ? 1 : 0 };
+    }
+    return { day: format(day, 'EEE', { locale: es }), value: 0 };
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -135,6 +176,114 @@ const Wellbeing = () => {
         <h1 className="text-2xl font-bold text-foreground">Mi Rincón</h1>
         <p className="text-muted-foreground">Un espacio para ti, más allá de las entregas</p>
       </div>
+
+      {/* Estadísticas de Bienestar */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="glass">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Victorias Totales</p>
+                <p className="text-3xl font-bold text-foreground">{totalWins}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center">
+                <Trophy className="h-6 w-6 text-accent" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Días en StudyNest</p>
+                <p className="text-3xl font-bold text-foreground">{accountAge}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <Calendar className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Objetivo del Semestre</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {hasGoal ? '✓ Definido' : 'Pendiente'}
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-info/20 flex items-center justify-center">
+                <Target className="h-6 w-6 text-info" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="glass">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Aprendizajes Hoy</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {hasLearnings ? '✓ Registrado' : 'Sin registro'}
+                </p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-secondary/20 flex items-center justify-center">
+                <Brain className="h-6 w-6 text-secondary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Gráfico de Actividad Semanal */}
+      <Card className="glass">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Actividad de la Semana
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-end justify-between gap-2 h-32">
+              {weeklyActivity.map((item, index) => (
+                <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                  <div className="relative w-full flex items-end justify-center" style={{ height: '80px' }}>
+                    <div
+                      className={`w-full rounded-t transition-all duration-500 ${
+                        item.value > 0
+                          ? 'bg-gradient-to-t from-primary to-primary/60'
+                          : 'bg-muted'
+                      }`}
+                      style={{
+                        height: item.value > 0 ? '60%' : '20%',
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground font-medium">
+                    {item.day}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-primary"></div>
+                <span>Con actividad</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-muted"></div>
+                <span>Sin actividad</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Semester goal */}

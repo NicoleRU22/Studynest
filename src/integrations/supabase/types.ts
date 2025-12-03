@@ -285,6 +285,103 @@ export type Database = {
         }
         Relationships: []
       }
+      notes: {
+        Row: {
+          id: string
+          user_id: string
+          subject_id: string | null
+          title: string
+          content: string
+          tags: string[] | null
+          is_favorite: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          subject_id?: string | null
+          title: string
+          content?: string
+          tags?: string[] | null
+          is_favorite?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          subject_id?: string | null
+          title?: string
+          content?: string
+          tags?: string[] | null
+          is_favorite?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      grades: {
+        Row: {
+          id: string
+          user_id: string
+          subject_id: string | null
+          name: string
+          grade: number
+          max_grade: number
+          weight: number
+          evaluation_type: string
+          date: string
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          subject_id?: string | null
+          name: string
+          grade: number
+          max_grade?: number
+          weight?: number
+          evaluation_type?: string
+          date?: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          subject_id?: string | null
+          name?: string
+          grade?: number
+          max_grade?: number
+          weight?: number
+          evaluation_type?: string
+          date?: string
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grades_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           completed_at: string | null

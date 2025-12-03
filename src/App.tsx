@@ -17,6 +17,7 @@ import Projects from "./pages/dashboard/Projects";
 import CalendarPage from "./pages/dashboard/Calendar";
 import Wellbeing from "./pages/dashboard/Wellbeing";
 import Profile from "./pages/dashboard/Profile";
+import Grades from "./pages/dashboard/Grades";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => {
               <Route path="tasks" element={<Tasks />} />
               <Route path="projects" element={<Projects />} />
               <Route path="calendar" element={<CalendarPage />} />
+              <Route path="grades" element={<Grades />} />
               <Route path="wellbeing" element={<Wellbeing />} />
               <Route path="profile" element={<Profile />} />
             </Route>

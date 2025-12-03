@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, BookOpen, Mail, Lock, Sparkles, GraduationCap } from 'lucide-react';
+import { Loader2, BookOpen, Mail, Lock } from 'lucide-react';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -84,11 +84,9 @@ const Login = () => {
             <BookOpen className="h-10 w-10 text-white" />
           </div>
           <div className="flex items-center justify-center gap-2 mb-2">
-            <GraduationCap className="h-8 w-8 text-purple-600 dark:text-purple-400" />
             <h1 className="text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
               StudyNest
             </h1>
-            <Sparkles className="h-6 w-6 text-yellow-500 animate-pulse" />
           </div>
           <p className="text-muted-foreground mt-2 text-base font-medium">
             Tu nido de productividad académica
@@ -164,10 +162,7 @@ const Login = () => {
                     Ingresando...
                   </>
                 ) : (
-                  <>
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Iniciar sesión
-                  </>
+                  'Iniciar sesión'
                 )}
               </Button>
             </form>

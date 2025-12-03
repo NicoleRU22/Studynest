@@ -27,6 +27,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  useDroppable,
+  useDraggable,
 } from '@dnd-kit/core';
 import {
   Plus,
@@ -35,6 +37,10 @@ import {
   Trash2,
   Loader2,
   Flag,
+  Folder,
+  PlayCircle,
+  Eye,
+  CheckCircle2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -65,10 +71,94 @@ interface Milestone {
 }
 
 const statusConfig = {
-  planning: { label: '🗂️ Planeación', color: 'bg-muted' },
-  in_progress: { label: '📊 En progreso', color: 'bg-primary/20' },
-  review: { label: '🧪 En revisión', color: 'bg-accent/20' },
-  delivered: { label: '✅ Entregado', color: 'bg-secondary/20' },
+  planning: { label: 'Planeación', icon: Folder, color: 'bg-muted' },
+  in_progress: { label: 'En progreso', icon: PlayCircle, color: 'bg-primary/20' },
+  review: { label: 'En revisión', icon: Eye, color: 'bg-accent/20' },
+  delivered: { label: 'Entregado', icon: CheckCircle2, color: 'bg-secondary/20' },
+};
+
+// Componente para tarjetas arrastrables
+const DraggableProject = ({
+  project,
+  onClick,
+}: {
+  project: Project;
+  onClick: () => void;
+}) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: project.id,
+  });
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined;
+
+  return (
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
+      <Card
+        className={`cursor-move hover:shadow-soft transition-all ${
+          isDragging ? 'opacity-50' : ''
+        }`}
+        onClick={onClick}
+      >
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">{project.title}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {project.deadline && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {format(new Date(project.deadline), 'dd MMM', { locale: es })}
+            </div>
+          )}
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs">
+              <span>Progreso</span>
+              <span>{project.progress}%</span>
+            </div>
+            <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all"
+                style={{ width: `${project.progress}%` }}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Componente para columnas droppables
+const DroppableColumn = ({
+  status,
+  children,
+}: {
+  status: Project['status'];
+  children: React.ReactNode;
+}) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: status,
+  });
+
+  const Icon = statusConfig[status].icon;
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`rounded-xl p-4 min-h-[300px] ${statusConfig[status].color} ${
+        isOver ? 'ring-2 ring-primary ring-offset-2' : ''
+      }`}
+    >
+      <h3 className="font-medium mb-4 flex items-center gap-2">
+        <Icon className="h-4 w-4" />
+        {statusConfig[status].label}
+      </h3>
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
 };
 
 const Projects = () => {
@@ -168,10 +258,21 @@ const Projects = () => {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over) return;
+    if (!over || active.id === over.id) return;
 
     const projectId = active.id as string;
     const newStatus = over.id as Project['status'];
+
+    // Verificar que el nuevo estado sea válido
+    if (!Object.keys(statusConfig).includes(newStatus)) {
+      return;
+    }
+
+    // Encontrar el proyecto actual para verificar si el estado cambió
+    const currentProject = projects.find((p) => p.id === projectId);
+    if (!currentProject || currentProject.status === newStatus) {
+      return;
+    }
 
     const { error } = await supabase
       .from('projects')
@@ -183,6 +284,7 @@ const Projects = () => {
       return;
     }
 
+    toast({ title: '✅ Proyecto movido' });
     fetchProjects();
   };
 
@@ -291,67 +393,20 @@ const Projects = () => {
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {(Object.keys(statusConfig) as Project['status'][]).map((status) => (
-            <div
-              key={status}
-              id={status}
-              className={`rounded-xl p-4 min-h-[300px] ${statusConfig[status].color}`}
-            >
-              <h3 className="font-medium mb-4">{statusConfig[status].label}</h3>
-              <div className="space-y-3">
-                {getProjectsByStatus(status).map((project) => (
-                  <Card
-                    key={project.id}
-                    className="cursor-pointer hover:shadow-soft transition-all"
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('text/plain', project.id);
-                    }}
-                    onClick={() => setSelectedProject(project)}
-                  >
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm">{project.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      {project.deadline && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {format(new Date(project.deadline), 'dd MMM', { locale: es })}
-                        </div>
-                      )}
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-xs">
-                          <span>Progreso</span>
-                          <span>{project.progress}%</span>
-                        </div>
-                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${project.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                      {/* Mini timeline */}
-                      {milestones[project.id]?.length > 0 && (
-                        <div className="flex gap-1 mt-2">
-                          {milestones[project.id].slice(0, 4).map((m, i) => (
-                            <div
-                              key={m.id}
-                              className="h-1 flex-1 bg-primary/50 rounded-full"
-                              title={m.name}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-                {getProjectsByStatus(status).length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Sin proyectos
-                  </p>
-                )}
-              </div>
-            </div>
+            <DroppableColumn key={status} status={status}>
+              {getProjectsByStatus(status).map((project) => (
+                <DraggableProject
+                  key={project.id}
+                  project={project}
+                  onClick={() => setSelectedProject(project)}
+                />
+              ))}
+              {getProjectsByStatus(status).length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Sin proyectos
+                </p>
+              )}
+            </DroppableColumn>
           ))}
         </div>
       </DndContext>

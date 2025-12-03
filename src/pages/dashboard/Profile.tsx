@@ -10,7 +10,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import {
   User,
-  GraduationCap,
   Mail,
   Camera,
   Save,
@@ -22,14 +21,16 @@ import {
 } from 'lucide-react';
 
 const universities = [
-  'Universidad Nacional Autónoma de México (UNAM)',
-  'Instituto Tecnológico de Monterrey (ITESM)',
-  'Instituto Politécnico Nacional (IPN)',
-  'Universidad Autónoma de México (UAM)',
-  'Universidad de Buenos Aires (UBA)',
-  'Pontificia Universidad Católica de Chile',
-  'Universidad de los Andes',
-  'Universidad de São Paulo (USP)',
+  'Universidad Nacional Mayor de San Marcos (UNMSM)',
+  'Pontificia Universidad Católica del Perú (PUCP)',
+  'Universidad Nacional de Ingeniería (UNI)',
+  'Universidad Peruana Cayetano Heredia (UPCH)',
+  'Universidad del Pacífico (UP)',
+  'Universidad de Lima (UL)',
+  'Universidad Nacional Agraria La Molina (UNALM)',
+  'Universidad Tecnológica del Perú (UTP)',
+  'Universidad Nacional San Antonio Abad del Cusco (UNSAAC)',
+  'Universidad Nacional de San Agustín de Arequipa (UNSA)',
   'Otra',
 ];
 
@@ -325,7 +326,6 @@ export default function Profile() {
 
             <div className="space-y-2">
               <Label htmlFor="university" className="flex items-center gap-2">
-                <GraduationCap className="h-4 w-4" />
                 Universidad
               </Label>
               <Select value={university} onValueChange={setUniversity}>

@@ -6,18 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, BookOpen, Mail, Lock, User, GraduationCap, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Loader2, BookOpen, Mail, Lock, User, CheckCircle2 } from 'lucide-react';
 import { z } from 'zod';
 
 const universities = [
-  'Universidad Nacional Autónoma de México (UNAM)',
-  'Instituto Tecnológico de Monterrey (ITESM)',
-  'Instituto Politécnico Nacional (IPN)',
-  'Universidad Autónoma de México (UAM)',
-  'Universidad de Buenos Aires (UBA)',
-  'Pontificia Universidad Católica de Chile',
-  'Universidad de los Andes',
-  'Universidad de São Paulo (USP)',
+  'Universidad Nacional Mayor de San Marcos (UNMSM)',
+  'Pontificia Universidad Católica del Perú (PUCP)',
+  'Universidad Nacional de Ingeniería (UNI)',
+  'Universidad Peruana Cayetano Heredia (UPCH)',
+  'Universidad del Pacífico (UP)',
+  'Universidad de Lima (UL)',
+  'Universidad Nacional Agraria La Molina (UNALM)',
+  'Universidad Tecnológica del Perú (UTP)',
+  'Universidad Nacional San Antonio Abad del Cusco (UNSAAC)',
+  'Universidad Nacional de San Agustín de Arequipa (UNSA)',
   'Otra',
 ];
 
@@ -108,7 +110,6 @@ const Register = () => {
             <h1 className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
               StudyNest
             </h1>
-            <Sparkles className="h-6 w-6 text-yellow-500 animate-pulse" />
           </div>
           <p className="text-muted-foreground text-base font-medium">
             Únete a nuestra comunidad académica
@@ -201,14 +202,12 @@ const Register = () => {
 
               <div className="space-y-2.5">
                 <Label htmlFor="university" className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                  <GraduationCap className="h-3.5 w-3.5" />
                   Universidad
                 </Label>
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <Select value={university} onValueChange={setUniversity}>
-                    <SelectTrigger className="h-12 border-2 border-indigo-200/50 dark:border-indigo-800/50 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm transition-all duration-300 relative z-0 pl-10">
-                      <GraduationCap className="absolute left-3 h-5 w-5 text-indigo-500 dark:text-indigo-400" />
+                    <SelectTrigger className="h-12 border-2 border-indigo-200/50 dark:border-indigo-800/50 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm transition-all duration-300 relative z-0">
                       <SelectValue placeholder="Selecciona tu universidad" />
                     </SelectTrigger>
                     <SelectContent>

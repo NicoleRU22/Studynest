@@ -65,10 +65,10 @@ interface Task {
 type FilterType = 'all' | 'today' | 'week' | 'no-date' | 'team';
 
 const typeConfig = {
-  simple: { icon: Pin, color: 'text-primary', label: 'Pendiente' },
-  deadline: { icon: Calendar, color: 'text-accent', label: 'Con fecha' },
-  recurring: { icon: RefreshCw, color: 'text-secondary', label: 'Recurrente' },
-  team: { icon: Users, color: 'text-info', label: 'Para equipo' },
+  simple: { icon: Pin, color: 'text-blue-600 dark:text-blue-400', label: 'Pendiente' },
+  deadline: { icon: Calendar, color: 'text-orange-600 dark:text-orange-400', label: 'Con fecha' },
+  recurring: { icon: RefreshCw, color: 'text-green-600 dark:text-green-400', label: 'Recurrente' },
+  team: { icon: Users, color: 'text-purple-600 dark:text-purple-400', label: 'Para equipo' },
 };
 
 const SortableTask = ({
@@ -121,7 +121,7 @@ const SortableTask = ({
         {task.completed_at && <span className="text-xs">✓</span>}
       </button>
 
-      <Icon className={`h-4 w-4 ${config.color}`} />
+      <Icon className={`h-5 w-5 ${config.color} flex-shrink-0`} />
 
       <div className="flex-1 min-w-0">
         <p className={`font-medium truncate ${task.completed_at ? 'line-through' : ''}`}>

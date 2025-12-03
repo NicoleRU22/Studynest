@@ -14,7 +14,6 @@ import {
   Sun,
   Menu,
   X,
-  Sparkles,
   User,
   FileText,
 } from 'lucide-react';
@@ -77,7 +76,6 @@ export const Sidebar = () => {
                 <h1 className="font-extrabold text-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-400 dark:via-indigo-400 dark:to-blue-400 bg-clip-text text-transparent">
                   StudyNest
                 </h1>
-                <Sparkles className="h-4 w-4 text-yellow-500 animate-pulse" />
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>

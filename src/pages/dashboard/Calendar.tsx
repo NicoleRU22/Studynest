@@ -26,6 +26,8 @@ import {
   Calendar as CalendarIcon,
   Loader2,
   AlertTriangle,
+  Trash2,
+  Edit,
 } from 'lucide-react';
 import {
   format,
@@ -63,25 +65,32 @@ interface Task {
 }
 
 const eventTypeConfig = {
-  exam: { label: 'Parcial', color: 'bg-destructive', emoji: '📝' },
-  deadline: { label: 'Entrega', color: 'bg-accent', emoji: '📅' },
-  meeting: { label: 'Reunión equipo', color: 'bg-primary', emoji: '👥' },
-  holiday: { label: 'Feriado', color: 'bg-secondary', emoji: '🎉' },
-  event: { label: 'Evento', color: 'bg-muted', emoji: '📌' },
+  exam: { label: 'Parcial', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300', emoji: '📝' },
+  deadline: { label: 'Entrega', color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300', emoji: '📅' },
+  meeting: { label: 'Reunión equipo', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300', emoji: '👥' },
+  holiday: { label: 'Feriado', color: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300', emoji: '🎉' },
+  event: { label: 'Evento', color: 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300', emoji: '📌' },
 };
+
+type EventType = 'exam' | 'deadline' | 'meeting' | 'holiday' | 'event';
+
+interface ExtendedEvent extends CalendarEvent {
+  isTask?: boolean;
+}
 
 const CalendarPage = () => {
   const { user } = useAuth();
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editingEvent, setEditingEvent] = useState<ExtendedEvent | null>(null);
   const [formData, setFormData] = useState({
     title: '',
-    type: 'event' as Event['type'],
+    type: 'event' as EventType,
     start_time: '',
     subject_id: '',
   });
@@ -109,10 +118,10 @@ const CalendarPage = () => {
   const weekEnd = endOfWeek(currentWeek, { weekStartsOn: 1 });
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  const getEventsForDay = (date: Date) => {
-    const dayEvents = events.filter((e) =>
-      isSameDay(new Date(e.start_time), date)
-    );
+  const getEventsForDay = (date: Date): ExtendedEvent[] => {
+    const dayEvents = events
+      .filter((e) => isSameDay(new Date(e.start_time), date))
+      .map((e) => ({ ...e, isTask: false }));
 
     // Add tasks with due dates
     const dayTasks = tasks
@@ -120,7 +129,10 @@ const CalendarPage = () => {
       .map((t) => ({
         id: `task-${t.id}`,
         title: t.title,
-        type: 'deadline' as const,
+        type: 'deadline' as EventType,
+        start_time: t.due_date!,
+        end_time: null,
+        subject_id: null,
         isTask: true,
       }));
 
@@ -144,22 +156,75 @@ const CalendarPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { error } = await supabase.from('events').insert({
-      title: formData.title,
-      type: formData.type,
-      start_time: formData.start_time,
-      subject_id: formData.subject_id || null,
-      user_id: user!.id,
-    });
+    if (editingEvent && !editingEvent.isTask) {
+      // Update existing event
+      const { error } = await supabase
+        .from('events')
+        .update({
+          title: formData.title,
+          type: formData.type,
+          start_time: formData.start_time,
+          subject_id: formData.subject_id || null,
+        })
+        .eq('id', editingEvent.id);
+
+      if (error) {
+        toast({ title: 'Error al actualizar evento', variant: 'destructive' });
+        return;
+      }
+
+      toast({ title: '✅ Evento actualizado' });
+    } else {
+      // Create new event
+      const { error } = await supabase.from('events').insert({
+        title: formData.title,
+        type: formData.type,
+        start_time: formData.start_time,
+        subject_id: formData.subject_id || null,
+        user_id: user!.id,
+      });
+
+      if (error) {
+        toast({ title: 'Error al crear evento', variant: 'destructive' });
+        return;
+      }
+
+      toast({ title: '✅ Evento creado' });
+    }
+
+    resetForm();
+    fetchData();
+  };
+
+  const handleDelete = async () => {
+    if (!editingEvent || editingEvent.isTask) return;
+
+    const { error } = await supabase.from('events').delete().eq('id', editingEvent.id);
 
     if (error) {
-      toast({ title: 'Error al crear evento', variant: 'destructive' });
+      toast({ title: 'Error al eliminar evento', variant: 'destructive' });
       return;
     }
 
-    toast({ title: '✅ Evento creado' });
+    toast({ title: '✅ Evento eliminado' });
     resetForm();
     fetchData();
+  };
+
+  const openEditDialog = (event: ExtendedEvent) => {
+    if (event.isTask) {
+      toast({ title: 'Las tareas no se pueden editar desde aquí', variant: 'default' });
+      return;
+    }
+
+    setEditingEvent(event);
+    setFormData({
+      title: event.title,
+      type: event.type as EventType,
+      start_time: format(new Date(event.start_time), "yyyy-MM-dd'T'HH:mm"),
+      subject_id: event.subject_id || '',
+    });
+    setIsDialogOpen(true);
   };
 
   const openQuickAdd = (date: Date) => {
@@ -179,6 +244,7 @@ const CalendarPage = () => {
       subject_id: '',
     });
     setSelectedDate(null);
+    setEditingEvent(null);
     setIsDialogOpen(false);
   };
 
@@ -283,8 +349,12 @@ const CalendarPage = () => {
                   return (
                     <div
                       key={event.id}
-                      className={`text-xs p-1 rounded truncate ${config.color} text-foreground`}
-                      onClick={(e) => e.stopPropagation()}
+                      className={`text-xs p-1.5 rounded truncate ${config.color} cursor-pointer hover:opacity-80 transition-opacity font-medium`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditDialog(event);
+                      }}
+                      title="Haz clic para editar"
                     >
                       {config.emoji} {event.title}
                     </div>
@@ -301,14 +371,16 @@ const CalendarPage = () => {
         })}
       </div>
 
-      {/* Create dialog */}
+      {/* Create/Edit dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {selectedDate
-                ? `Nuevo evento - ${format(selectedDate, "d 'de' MMMM", { locale: es })}`
-                : 'Nuevo evento'}
+              {editingEvent
+                ? 'Editar evento'
+                : selectedDate
+                  ? `Nuevo evento - ${format(selectedDate, "d 'de' MMMM", { locale: es })}`
+                  : 'Nuevo evento'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -377,13 +449,26 @@ const CalendarPage = () => {
               </Select>
             </div>
 
-            <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={resetForm}>
-                Cancelar
-              </Button>
-              <Button type="submit" className="gradient-primary">
-                Crear evento
-              </Button>
+            <div className="flex gap-2 justify-between">
+              {editingEvent && !editingEvent.isTask && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDelete}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Eliminar
+                </Button>
+              )}
+              <div className="flex gap-2 ml-auto">
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Cancelar
+                </Button>
+                <Button type="submit" className="gradient-primary">
+                  {editingEvent ? 'Guardar cambios' : 'Crear evento'}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

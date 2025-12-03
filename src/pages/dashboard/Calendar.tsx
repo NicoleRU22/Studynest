@@ -259,18 +259,19 @@ const CalendarPage = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 md:space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Calendario Académico</h1>
-          <p className="text-muted-foreground">Tu semana de un vistazo</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Calendario Académico</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Tu semana de un vistazo</p>
         </div>
         <Button
-          className="gradient-primary shadow-soft"
+          className="gradient-primary shadow-soft w-full sm:w-auto"
           onClick={() => setIsDialogOpen(true)}
         >
           <Plus className="h-4 w-4 mr-2" />
-          Agregar evento
+          <span className="hidden sm:inline">Agregar evento</span>
+          <span className="sm:hidden">Agregar</span>
         </Button>
       </div>
 
@@ -282,9 +283,9 @@ const CalendarPage = () => {
               key={alert.subject}
               className="border-accent bg-accent/10"
             >
-              <CardContent className="flex items-center gap-3 py-3">
-                <AlertTriangle className="h-5 w-5 text-accent" />
-                <span className="text-sm">
+              <CardContent className="flex items-start sm:items-center gap-2 sm:gap-3 py-2 sm:py-3">
+                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-accent flex-shrink-0 mt-0.5 sm:mt-0" />
+                <span className="text-xs sm:text-sm">
                   <strong>{alert.subject}</strong>: Cierre de convenio en{' '}
                   {alert.daysLeft === 0 ? 'HOY' : `${alert.daysLeft} días`} (
                   {format(new Date(alert.date), 'dd/MM')})
@@ -296,29 +297,102 @@ const CalendarPage = () => {
       )}
 
       {/* Week navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Button
           variant="outline"
           size="icon"
           onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
+          className="flex-shrink-0"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-lg font-medium">
-          {format(weekStart, "d 'de' MMMM", { locale: es })} -{' '}
-          {format(weekEnd, "d 'de' MMMM yyyy", { locale: es })}
+        <h2 className="text-sm sm:text-base md:text-lg font-medium text-center flex-1 truncate">
+          <span className="hidden sm:inline">
+            {format(weekStart, "d 'de' MMMM", { locale: es })} -{' '}
+            {format(weekEnd, "d 'de' MMMM yyyy", { locale: es })}
+          </span>
+          <span className="sm:hidden">
+            {format(weekStart, "d MMM", { locale: es })} -{' '}
+            {format(weekEnd, "d MMM", { locale: es })}
+          </span>
         </h2>
         <Button
           variant="outline"
           size="icon"
           onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
+          className="flex-shrink-0"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Week grid */}
-      <div className="grid grid-cols-7 gap-2">
+      {/* Week grid - Responsive: vertical scroll en móvil, grid en desktop */}
+      <div className="block sm:hidden">
+        {/* Vista móvil: lista vertical */}
+        <div className="space-y-3">
+          {weekDays.map((day) => {
+            const dayEvents = getEventsForDay(day);
+            const isCurrentDay = isToday(day);
+
+            return (
+              <div
+                key={day.toISOString()}
+                className={`rounded-xl p-3 cursor-pointer transition-all hover:bg-muted/50 ${
+                  isCurrentDay ? 'bg-primary/10 ring-2 ring-primary' : 'bg-card'
+                }`}
+                onClick={() => openQuickAdd(day)}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground uppercase font-medium">
+                      {format(day, 'EEE', { locale: es })}
+                    </p>
+                    <p
+                      className={`text-base font-bold ${
+                        isCurrentDay ? 'text-primary' : ''
+                      }`}
+                    >
+                      {format(day, 'd')}
+                    </p>
+                  </div>
+                  {dayEvents.length > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {dayEvents.length} evento{dayEvents.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  {dayEvents.slice(0, 2).map((event) => {
+                    const config = eventTypeConfig[event.type];
+                    return (
+                      <div
+                        key={event.id}
+                        className={`text-xs p-2 rounded ${config.color} cursor-pointer hover:opacity-80 transition-opacity font-medium`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditDialog(event);
+                        }}
+                        title="Haz clic para editar"
+                      >
+                        <span className="mr-1">{config.emoji}</span>
+                        <span className="truncate block">{event.title}</span>
+                      </div>
+                    );
+                  })}
+                  {dayEvents.length > 2 && (
+                    <p className="text-xs text-muted-foreground text-center pt-1">
+                      +{dayEvents.length - 2} más
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Vista desktop: grid de 7 columnas */}
+      <div className="hidden sm:grid grid-cols-7 gap-2">
         {weekDays.map((day) => {
           const dayEvents = getEventsForDay(day);
           const isCurrentDay = isToday(day);
@@ -373,9 +447,9 @@ const CalendarPage = () => {
 
       {/* Create/Edit dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[95vw] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">
               {editingEvent
                 ? 'Editar evento'
                 : selectedDate
@@ -449,24 +523,24 @@ const CalendarPage = () => {
               </Select>
             </div>
 
-            <div className="flex gap-2 justify-between">
+            <div className="flex flex-col sm:flex-row gap-2 justify-between">
               {editingEvent && !editingEvent.isTask && (
                 <Button
                   type="button"
                   variant="destructive"
                   onClick={handleDelete}
-                  className="flex items-center gap-2"
+                  className="flex items-center justify-center gap-2 w-full sm:w-auto order-2 sm:order-1"
                 >
                   <Trash2 className="h-4 w-4" />
                   Eliminar
                 </Button>
               )}
-              <div className="flex gap-2 ml-auto">
-                <Button type="button" variant="outline" onClick={resetForm}>
+              <div className="flex gap-2 w-full sm:w-auto sm:ml-auto order-1 sm:order-2">
+                <Button type="button" variant="outline" onClick={resetForm} className="flex-1 sm:flex-initial">
                   Cancelar
                 </Button>
-                <Button type="submit" className="gradient-primary">
-                  {editingEvent ? 'Guardar cambios' : 'Crear evento'}
+                <Button type="submit" className="gradient-primary flex-1 sm:flex-initial">
+                  {editingEvent ? 'Guardar' : 'Crear'}
                 </Button>
               </div>
             </div>
